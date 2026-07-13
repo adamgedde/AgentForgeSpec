@@ -6,8 +6,6 @@ Your provider credentials, application database, run history, and artifacts stay
 
 ## Contents
 
-- [Start here](#start-here)
-- [Configuration and security](#configuration-and-security)
 - [Build automation](#build-automation)
 - [Run and inspect automation](#run-and-inspect-automation)
 - [Schedule and operate](#schedule-and-operate)
@@ -16,81 +14,6 @@ Your provider credentials, application database, run history, and artifacts stay
 - [Troubleshooting](#troubleshooting)
 
 ## Start here
-
-### Requirements
-
-- macOS or Linux
-- Python 3.11, 3.12, or 3.13 for the local startup script
-- A modern browser
-- Network access to any model providers or external services you choose to configure
-- Optional credentials for OpenAI, Anthropic, Tavily, Mailgun, and other services you intend to use
-- Optional Ollama server for locally hosted models
-
-### Local installation
-
-```bash
-git clone <repository-url>
-cd AgentForge
-chmod +x start.sh stop.sh
-cp .env.example .env
-./start.sh
-```
-
-Open [http://localhost:8000](http://localhost:8000). Confirm the service is healthy at [http://localhost:8000/api/health](http://localhost:8000/api/health).
-
-The startup script creates or refreshes the virtual environment, installs pinned dependencies, creates required directories, generates an encryption key when necessary, applies Alembic migrations, starts the server, and waits for the health check.
-
-Stop the service with:
-
-```bash
-./stop.sh
-```
-
-### Docker installation
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-For background operation:
-
-```bash
-docker compose up --build -d
-docker compose logs -f
-docker compose down
-```
-
-Docker persists the default SQLite database and artifacts in `./data`. On first startup, the container creates a durable encryption-key fallback in `data/docker.env` if no usable `ENCRYPTION_KEY` was provided.
-
-## Configuration and security
-
-AgentForge reads `.env` in the project root. Treat it as private.
-
-| Variable | Purpose |
-| --- | --- |
-| `APP_PORT` | Application port; default `8000`. |
-| `APP_HOST` | Listener host. Use `127.0.0.1` for same-machine-only access. |
-| `DATABASE_URL` | SQLAlchemy database URL; default is local SQLite in `data/`. |
-| `ENCRYPTION_KEY` | Fernet key used to encrypt provider and connection secrets at rest. Keep it stable after saving credentials. |
-| `CORS_ORIGINS` | Comma-separated approved browser origins. Wildcard origins are rejected. |
-| `API_KEY` | Optional bearer token required for API routes other than health. Use it for non-local deployments. |
-| `LOG_LEVEL` | Server logging level. |
-| `AGENT_TIMEOUT_SECONDS` | Maximum duration for an agent, crew, or flow run. |
-| `ARTIFACT_BASE_DIR` | Root directory for run artifacts. |
-| `ARTIFACT_INLINE_THRESHOLD_CHARS` | Size at which output is stored as an artifact rather than returned inline. |
-| `TAVILY_API_KEY` | Enables the Tavily web-search tool. |
-| `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` | Enable Mailgun email delivery. |
-| `MAILGUN_DEFAULT_SUBJECT` | Optional fallback email subject. |
-| `APP_RELOAD` | Development-only Uvicorn reload switch. |
-
-Important security practices:
-
-- Do not commit `.env`, `data/`, artifacts, or logs.
-- Do not change `ENCRYPTION_KEY` after saving credentials unless you intend to re-enter every encrypted secret.
-- Prefer `127.0.0.1` and a private reverse proxy for remote access.
-- Configure agents with the smallest required set of tools and directories.
-- Treat HTTP mutation, file writing, and email tools as external side effects; test them with safe inputs first.
 
 ## Build automation
 
