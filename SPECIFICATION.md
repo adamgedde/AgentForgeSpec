@@ -85,6 +85,8 @@ Never add arbitrary shell execution in v1. File reads require explicit allowed d
 
 ### Workflows
 
+> **Design note — CrewAI Flows.** Earlier work on the AgentForge platform (this spec's inspiration) found that CrewAI Flows, not Crews, were the natural fit whenever branching logic or human checkpoints were required: Crews suit parallel/collaborative agent work, while Flows suit conditional routing and structured pipelines. This specification deliberately does **not** adopt CrewAI Flows. `Team` is restricted to `sequential` CrewAI Crews only, and all branching, routing, and human-review logic instead lives in the app-level `Workflow` resource below (`router`, `human_review`, etc.), outside of CrewAI entirely. The trade-off is intentional: it keeps control flow, pause/resume state, and audit trace format independent of CrewAI's Flow implementation, at the cost of re-implementing logic CrewAI Flows already provide natively. A builder who wants Flow-native branching instead should treat this as the one place in the spec to consciously reconsider, not silently follow.
+
 `Workflow` has name, description, enabled state, timestamps, and ordered JSON steps. Support:
 
 | Kind | Behavior |
@@ -183,4 +185,3 @@ Automated tests and a documented manual smoke test must cover:
 8. Scheduler, notifications, dashboard, insights.
 9. Blueprints/design assistant/import-export preview.
 10. Security review, fresh-install verification, test/documentation completion.
-

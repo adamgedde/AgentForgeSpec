@@ -54,6 +54,17 @@ The specification prescribes CrewAI as the execution runtime, and the build prom
 
 See `SPECIFICATION.md` ("Purpose" and "Scope") for the full scope discussion.
 
+## Things that made it into production but aren't part of this spec, based on real-world use
+
+AgentForge itself went through an extensive multi-phase build and was validated against real pipelines (RFP question extraction, HVAC contractor research, market research, cold-call prospecting). A few capabilities proved necessary along the way that this spec intentionally leaves out, generalizes, or hands to the builder's discretion:
+
+- **CrewAI Flows for branching and human checkpoints.** In production, CrewAI Flows (not Crews) turned out to be the natural fit whenever a pipeline needed conditional routing or a human checkpoint — Crews suit parallel/collaborative agent work, Flows suit structured, branching pipelines. This spec deliberately does not use CrewAI Flows at all; `Team` is sequential-only, and routing/human-review logic is reimplemented at the app level via the `Workflow` resource instead (see the design note in `SPECIFICATION.md`, under "Workflows"). That's a conscious architectural trade, not an omission, but it means the Flow-based approach already proven in production isn't what a builder following this spec will end up with.
+- **Chunked extraction with post-processing.** Single-call LLM extraction broke down on large or complex source documents (PDF/DOCX/XLSX). The fix that actually worked in production was chunking the input plus a set of post-processing code operations — merge JSON arrays back together, reassign sequential IDs across chunks, and run a coverage check to catch structural extraction gaps. This spec's `code` workflow step only describes a generic "deterministic JSON transformation DSL" and doesn't call out this specific chunk/merge/reindex/verify pattern, even though it's what made large-document extraction reliable.
+- **A formatted run-results viewer, user guide, and a Role/Goal/Backstory design guide.** Production added a dedicated formatted view for run output and reference documentation to help operators write effective worker definitions. The spec covers "formatted output" at the API level but doesn't require authoring guidance or a user-facing guide.
+- **UI refinements from real usage**: tagging, a card/table view toggle, and collapsible trace steps. The spec requires tags and live traces functionally but leaves these specific UX patterns to the builder.
+- **Mailgun as the concrete email tool**, and manual document parsing libraries (pdfplumber, python-docx, openpyxl) preferred over the OpenAI Assistants API specifically because they preserve source-location tracking for RFP/presales traceability. The spec only requires "optional email delivery" and generic file tools, provider-agnostic by design.
+- **A working default of GPT-4o at temperature 0.2** for structured extraction tasks. The spec leaves model/temperature choice to the operator's configured providers rather than prescribing a default.
+
 ## License
 
 Licensed under [CC BY 4.0](./LICENSE) - free to share and adapt, including commercially, with attribution.
