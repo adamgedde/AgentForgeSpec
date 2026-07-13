@@ -1,10 +1,10 @@
-# Self-Hosted AI Automation Workbench - Spec Kit
+# Self-Hosted AI Automation Workbench (FKA AgentForge)- LLM Coding Assistant Specification
 
-This repository contains a specification and build prompt for an **independent, self-hosted AI automation workbench**: a privacy-minded web app for designing, running, observing, and scheduling LLM-powered workers, teams, and workflows, built on **FastAPI and CrewAI**.
+This repository contains a specification and build prompt for an **independent, self-hosted AI automation workbench** originally known as AgentForge: a privacy-minded web app for designing, running, observing, and scheduling LLM-powered workers, teams, and workflows, built on **FastAPI and CrewAI**.
 
 It does not contain source code. Instead, it contains everything a coding assistant (or a human engineering team) needs to build the product from scratch.
 
-> An existing application called *AgentForge* is cited in the specification only as inspiration for the general product category. Nothing here reuses its branding, source code, database schema, endpoint names, or implementation details, and building from this spec should not either.
+> *AgentForge* is cited in the specification only as inspiration for the general product category. Nothing here reuses its branding, source code, database schema, endpoint names, or implementation details, and building from this spec should not either.
 
 ## What's in this repo
 
@@ -36,19 +36,22 @@ The specification pins a specific backend stack rather than leaving it open-ende
 
 This kit is meant to be reusable across coding assistants or teams while still guaranteeing a consistent outcome: the required stack (FastAPI + CrewAI + SQLAlchemy/Alembic + APScheduler) is fixed, but implementation details within that stack are left to the builder. The specification is intentionally prescriptive about *behavior, security, runtime, and milestones*, while leaving room for idiomatic patterns underneath.
 
-## Swapping the execution runtime
+## Swapping the execution runtime or other stack elements
 
-The specification prescribes CrewAI as the execution runtime, and the build prompt treats it as required. If you want to build against a different runtime (a custom orchestrator, LangGraph, AutoGen, etc.), the spec's own architecture makes this a contained change rather than a rewrite - but you'll need to edit `SPECIFICATION.md` and `BUILD_PROMPT.md` yourself before handing them to a coding assistant. In particular:
+The specification prescribes CrewAI as the execution runtime, and the build prompt treats it as required. If you want to build against a different runtime (a custom orchestrator, LangGraph, AutoGen, etc.), the spec's own architecture makes this a contained change rather than a rewrite. You'll need to edit `SPECIFICATION.md` and `BUILD_PROMPT.md` yourself before handing them to a coding assistant. 
 
-- The spec already requires CrewAI to be **wrapped behind an application execution service** so the database models, API contracts, validation, tracing, and UI never depend on CrewAI internals, and requires agents/tasks/crews to be built fresh from an immutable run snapshot each run rather than persisted as live CrewAI objects. That isolation boundary is what makes substitution feasible - preserve it regardless of which runtime you choose.
+In particular:
+
+- The spec already requires CrewAI to be **wrapped behind an application execution service** so the database models, API contracts, validation, tracing, and UI never depend on CrewAI internals, and requires agents/tasks/crews to be built fresh from an immutable run snapshot each run rather than persisted as live CrewAI objects. That isolation boundary is what makes substitution feasible - preserve it regardless of which runtime you choose. This means you can swap in other stack elements as you'd like.
 - Replace the "CrewAI as the execution runtime" line in `SPECIFICATION.md`'s "Required technology choices" with your chosen runtime, and carry that substitution through every other place CrewAI is named: tool adapters (`Tools`), `TeamTask` execution, the "Execution lifecycle" section, "Acceptance tests," and "Build milestones" (items 3, 4, and 6).
 - Preserve the underlying contract regardless of runtime: construct agents/tasks from the run snapshot (not live records), propagate prior task output as context to later tasks, wrap tools with timeout/allowlist/size-limit/redaction controls, and emit lifecycle trace events in the application's trace format.
 - In `BUILD_PROMPT.md`, update the "required runtime dependency" line and rename/rewrite the "CrewAI integration audit" follow-up prompt to check your chosen runtime's integration instead (snapshot-based construction, tool wrapping, trace emission, credential isolation).
-- The rest of the stack (FastAPI, SQLAlchemy/Alembic, APScheduler, SSE) is runtime-independent and does not need to change.
+- The rest of the stack (FastAPI, SQLAlchemy/Alembic, APScheduler, SSE) is runtime-independent and does not need to change, unless you have a preference to do so. If so, instruct your coding assistant to replace stack components as needed, and be sure to be consistent in those declarations.
 
 ## Scope notes
 
-- First release is **single-user, self-hosted, local-only by default** - not a multi-tenant SaaS product.
+- First release is **single-user, self-hosted, local-only by default** - not a multi-tenant SaaS product, **NOR** is this something to be considered production ready.
+- 
 - No unbounded shell/filesystem/internet access; tool use is constrained, adapted into traceable CrewAI-compatible tools, and auditable by design.
 - Execution is sequential in v1 - no parallel or distributed workflow execution.
 
