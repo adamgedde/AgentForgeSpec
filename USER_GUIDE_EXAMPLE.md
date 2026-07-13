@@ -13,8 +13,6 @@ Your provider credentials, application database, run history, and artifacts stay
 - [Private remote access](#private-remote-access)
 - [Troubleshooting](#troubleshooting)
 
-## Start here
-
 ## Build automation
 
 ### 1. Add a model provider
